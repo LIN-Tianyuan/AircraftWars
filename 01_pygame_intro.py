@@ -1,5 +1,9 @@
 import pygame
-from pygame import Rect
+
+# Initialisation du jeu
 pygame.init()
-# Game code
+
+# Écrire le code du jeu
+print("Écrire le code du jeu...")
+
 pygame.quit()
