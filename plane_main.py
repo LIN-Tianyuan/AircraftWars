@@ -16,6 +16,8 @@ class PlaneGame(object):
         self.__create_sprites()
         # 4. Créer un événement de temporisation - création d'un ennemi 1s
         pygame.time.set_timer(CREATE_ENEMY_EVENT, 1000)
+        # Tire une balle toutes les 0,5 secondes
+        pygame.time.set_timer(HERO_FIRE_EVENT, 500)
 
     def __create_sprites(self):
         bg1 = Background()
@@ -24,8 +26,9 @@ class PlaneGame(object):
         self.back_group = pygame.sprite.Group(bg1, bg2)
         # groupe d'ennemi
         self.enemy_group = pygame.sprite.Group()
-        # groupe de héros
-        self.hero_group = pygame.sprite.Group()
+        # Créer des sprites de héros et des groupes de sprites
+        self.hero = Hero()
+        self.hero_group = pygame.sprite.Group(self.hero)
 
     def start_game(self):
         print("Démarrer le jeu")
@@ -50,10 +53,34 @@ class PlaneGame(object):
                 PlaneGame.__game_over()
             elif event.type == CREATE_ENEMY_EVENT:
                 self.enemy_group.add(Enemy())
+            elif event.type == HERO_FIRE_EVENT:
+                self.hero.fire()
+
+        # Obtenir les touches du clavier en utilisant les méthodes fournies par le clavier - tuple de touches
+        keys_pressed = pygame.key.get_pressed()
+        # Déterminer la valeur de l'index de la clé correspondante dans le tuple 1
+        if keys_pressed[pygame.K_RIGHT]:
+            self.hero.speed = 2
+        elif keys_pressed[pygame.K_LEFT]:
+            self.hero.speed = -2
+        else:
+            self.hero.speed = 0
 
     def __check_collide(self):
         # Détection des collisions
-        pass
+        # 1. Les balles détruisent les avions ennemis.
+        pygame.sprite.groupcollide(self.hero.bullets, self.enemy_group, True, True)
+
+        # 2. Les avions ennemis s'écrasent sur les héros
+        enemies = pygame.sprite.spritecollide(self.hero, self.enemy_group, True)
+
+        # Déterminer si une liste a un contenu
+        if len(enemies) > 0:
+            # Laissez mourir les héros.
+            self.hero.kill()
+
+            # fin du jeu
+            PlaneGame.__game_over()
 
     def __update_sprites(self):
         # Mise à jour du jeu de sprites
@@ -63,6 +90,11 @@ class PlaneGame(object):
         self.enemy_group.update()
         self.enemy_group.draw(self.screen)
 
+        self.hero_group.update()
+        self.hero_group.draw(self.screen)
+
+        self.hero.bullets.update()
+        self.hero.bullets.draw(self.screen)
 
 
     @staticmethod
